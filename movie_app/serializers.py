@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from movie_app.models import Director, Movie, Review
+from rest_framework.exceptions import ValidationError
 
 
 class MovieListSerializer(serializers.ModelSerializer):
@@ -40,5 +41,47 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+
+
+class DirectorValidateSerializer(serializers.Serializer):
+    director = serializers.CharField(min_length=5, max_length=100)
+
+
+class DirectorObjectSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+
+
+class MovieValidateSerializer(serializers.Serializer):
+    title = serializers.CharField(min_length=3, max_length=100)
+    description = serializers.CharField(required=False)
+    duration = serializers.FloatField(min_value=1, max_value=1000)
+    director = serializers.IntegerField(required=False, allow_null=True, default=None)
+    director_obg = DirectorObjectSerializer()
+    director_list = serializers.ListField(child=DirectorObjectSerializer())
+
+    def validate_category(self, director):
+        if Director.objects.filter(id=director).count() == 0:
+            raise ValidationError('Director not found!')
+        return director
+
+
+class MovieObjectSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+
+
+class ReviewValidateSerializer(serializers.Serializer):
+    text = serializers.CharField(required=False)
+    movie = serializers.IntegerField(required=False, allow_null=True, default=None)
+    movie_obg = MovieObjectSerializer()
+    stars = serializers.FloatField(min_value=1, max_value=5)
+    movie_list = serializers.ListField(child=MovieObjectSerializer())
+
+    def validate_movie(self, movie):
+        if Movie.objects.filter(id=movie).count() == 0:
+            raise ValidationError('Movie not found!')
+        return movie
+
 
 

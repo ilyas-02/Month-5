@@ -3,7 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from movie_app.models import Director, Movie, Review
 from movie_app.serializers import DirectorListSerializer, MovieListSerializer, ReviewListSerializer, \
-                                    DirectorDetailSerializer, MovieDetailSerializer, ReviewDetailSerializer
+                                    DirectorDetailSerializer, MovieDetailSerializer, ReviewDetailSerializer, \
+                                    MovieValidateSerializer, DirectorValidateSerializer, ReviewValidateSerializer
+
 
 
 @api_view(['GET', 'POST'])
@@ -28,6 +30,10 @@ def director_list_view(request):
         serializer = DirectorListSerializer(directors, many=True)
         return Response(data=serializer.data)
     elif request.method == 'POST':
+        serializer = DirectorValidateSerializer(request.data)
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE,
+                            data={'errors': serializer.errors})
         director = Director.objects.create(**request.data)
         director.save()
         return Response(status=status.HTTP_201_CREATED,
@@ -42,7 +48,10 @@ def movie_list_view(request):
         serializer = MovieListSerializer(movies, many=True)
         return Response(data=serializer.data)
     elif request.method == 'POST':
-
+        serializer = MovieValidateSerializer(request.data)
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE,
+                            data={'errors': serializer.errors})
         movie = Movie.objects.create(**request.data)
         movie.save()
         return Response(status=status.HTTP_201_CREATED,
@@ -57,6 +66,10 @@ def review_list_view(request):
         serializer = ReviewListSerializer(reviews, many=True)
         return Response(data=serializer.data)
     elif request.method == 'POST':
+        serializer = ReviewValidateSerializer(request.data)
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE,
+                            data={'errors': serializer.errors})
         review = Review.objects.create(**request.data)
         review.save()
         return Response(status=status.HTTP_201_CREATED,
