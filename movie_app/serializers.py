@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from movie_app.models import Director, Movie, Review
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 
 class MovieListSerializer(serializers.ModelSerializer):
@@ -84,4 +85,18 @@ class ReviewValidateSerializer(serializers.Serializer):
         return movie
 
 
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
 
+
+class UserCreateSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate_username(self, username):
+        try:
+            User.objects.get(username=username)
+        except User.DoesNotExist:
+            return username
+        raise ValidationError('User already exists!')
